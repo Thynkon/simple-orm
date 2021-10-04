@@ -9,8 +9,6 @@ use Thynkon\SimpleOrm\database\Query;
 use Thynkon\SimpleOrm\database\sql\DML;
 use Thynkon\SimpleOrm\database\sql\DQL;
 
-require_once(__DIR__ . "/../../.env.php");
-
 /**
  * Class QueryBuilder
  */

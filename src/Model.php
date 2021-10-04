@@ -7,8 +7,6 @@ use ReflectionProperty;
 use Thynkon\SimpleOrm\database\Connector;
 use Thynkon\SimpleOrm\QueryBuilder;
 
-require_once(__DIR__ . "/../../.env.php");
-
 class Model
 {
     protected Connector $connector;
