@@ -20,7 +20,9 @@ class Model
             $vars = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
 
             foreach ($vars as $attribute) {
-                $this->{$attribute->getName()} = $args[$attribute->getName()];
+                if (key_exists($attribute->getName(), $args)) {
+                    $this->{$attribute->getName()} = $args[$attribute->getName()];
+                }
             }
         }
     }

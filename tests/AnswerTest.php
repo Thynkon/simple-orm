@@ -14,7 +14,6 @@ use ByJG\DbMigration\Migration;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
 use Thynkon\SimpleOrm\Test\models\Answer;
-use Thynkon\SimpleOrm\Test\models\Quiz;
 
 class AnswerTest extends TestCase
 {
