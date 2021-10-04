@@ -1,7 +1,7 @@
 {
     "name": "thynkon/simple-orm",
     "type": "library",
-    "license": "Apache License 2.0",
+    "license": "Apache-2.0",
     "autoload": {
         "psr-4": {
             "Thynkon\\SimpleOrm\\": "src/"
