@@ -69,7 +69,7 @@ class QueryBuilder
             case Query::DQL:
                 if ($this->queryCommand === DQL::SELECT) {
                     $order_by = $this->order_by === [] ? '' : ' ORDER BY ' . implode(', ', $this->order_by);
-                    $limit = $this->limit === 0 ? '' : ' LIMIT '. $this->limit;
+                    $limit = $this->limit === 0 ? '' : ' LIMIT ' . $this->limit;
 
                     $string = 'SELECT ' . implode(', ', $this->fields)
                         . ' FROM ' . implode(', ', $this->from)

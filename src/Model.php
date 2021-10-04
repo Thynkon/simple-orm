@@ -57,12 +57,16 @@ class Model
         $connector = Connector::getInstance();
 
         try {
-            return $connector->execute(
+            $connector->execute(
                 (new QueryBuilder())
                     ->from(static::$table)
                     ->insert($objectProperties),
                 $objectProperties,
             );
+
+            $this->$primaryKey = $connector->getConnection()->lastInsertId();
+
+            return true;
         } catch (\PDOException $exception) {
             // return false on duplicate entry
             // print exception message for debug purposes
@@ -74,13 +78,19 @@ class Model
     /**
      * @throws \ReflectionException
      */
-    public static function find(int $id): Model
+    public static function find(int $id): null|Model
     {
-        return (new QueryBuilder())
-            ->from(static::$table)
-            ->where("id", $id)
-            ->get(class: static::class
-        );
+        try {
+            return (new QueryBuilder())
+                ->from(static::$table)
+                ->where("id", $id)
+                ->get(class: static::class
+                );
+        } catch (\Exception $exception) {
+            // for debug purposes
+            echo $exception->getMessage();
+            return null;
+        }
     }
 
     public static function where($column, $value): QueryBuilder
@@ -88,7 +98,7 @@ class Model
         return (new QueryBuilder())->from(static::$table)->where($column, $value);
     }
 
-    public function save()
+    public function save(): bool
     {
         $objectProperties = get_object_vars($this);
 
@@ -106,13 +116,19 @@ class Model
 
         $connector = Connector::getInstance();
 
-        return $connector->execute(
-            (new QueryBuilder())
-                ->from(static::$table)
-                ->update($objectProperties)
-                ->where("id", $id),
-            $objectProperties,
-        );
+        try {
+            $connector->execute(
+                (new QueryBuilder())
+                    ->from(static::$table)
+                    ->update($objectProperties)
+                    ->where("id", $id),
+                $objectProperties,
+            );
+
+            return true;
+        } catch (\PDOException $exception) {
+            return false;
+        }
     }
 
     public function delete(): bool
