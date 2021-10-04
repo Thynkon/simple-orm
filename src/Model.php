@@ -115,19 +115,25 @@ class Model
         );
     }
 
-    public function delete(): bool
+    public function delete(): null|bool
     {
         return self::destroy($this->id);
     }
 
-    static public function destroy($id): bool
+    static public function destroy($id): null|bool
     {
         $connector = Connector::getInstance();
 
-        //return Connector::execute(
-        return $connector->execute(
-            (new QueryBuilder())->from(static::$table)->delete()->where("id", $id),
-            [],
-        );
+        try {
+            return $connector->execute(
+                (new QueryBuilder())->from(static::$table)->delete()->where("id", $id),
+                [],
+            );
+        } catch (\PDOException $exception) {
+            // return false on duplicate entry
+            // print exception message for debug purposes
+            echo $exception->getMessage();
+            return null;
+        }
     }
 }
