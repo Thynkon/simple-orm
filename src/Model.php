@@ -14,12 +14,14 @@ class Model
 
     public function __construct(array $args = [])
     {
-        // get list of properties and populate them using the 'args' array
-        $reflection = new ReflectionClass($this);
-        $vars = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+        if ($args !== []) {
+            // get list of properties and populate them using the 'args' array
+            $reflection = new ReflectionClass($this);
+            $vars = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
 
-        foreach ($vars as $attribute) {
-            $this->{$attribute->getName()} = $args[$attribute->getName()];
+            foreach ($vars as $attribute) {
+                $this->{$attribute->getName()} = $args[$attribute->getName()];
+            }
         }
     }
 
@@ -34,6 +36,39 @@ class Model
     public static function all()
     {
         return (new QueryBuilder())->from(static::$table)->get(true, static::class);
+    }
+
+    public function create(): bool
+    {
+        $objectProperties = get_object_vars($this);
+
+        $isPrimaryKeyInArray = array_key_exists("primaryKey", $objectProperties);
+        $isIdInArray = array_key_exists($objectProperties["primaryKey"], $objectProperties);
+
+        $primaryKey = isset($objectProperties["primaryKey"]) === true ? $objectProperties["primaryKey"] : false;
+        $id = isset($objectProperties[$primaryKey]) === true ? $objectProperties[$primaryKey] : false;
+
+        // remove primaryKey and id from final sql query
+        if ($isPrimaryKeyInArray === true || $isIdInArray === true) {
+            unset($objectProperties["primaryKey"]);
+            unset($objectProperties[$primaryKey]);
+        }
+
+        $connector = Connector::getInstance();
+
+        try {
+            return $connector->execute(
+                (new QueryBuilder())
+                    ->from(static::$table)
+                    ->insert($objectProperties),
+                $objectProperties,
+            );
+        } catch (\PDOException $exception) {
+            // return false on duplicate entry
+            // print exception message for debug purposes
+            echo $exception->getMessage();
+            return false;
+        }
     }
 
     /**
@@ -60,8 +95,8 @@ class Model
         $isPrimaryKeyInArray = array_key_exists("primaryKey", $objectProperties);
         $isIdInArray = array_key_exists($objectProperties["primaryKey"], $objectProperties);
 
-        $primaryKey = $objectProperties["primaryKey"];
-        $id = $objectProperties[$primaryKey];
+        $primaryKey = isset($objectProperties["primaryKey"]) === true ? $objectProperties["primaryKey"] : false;
+        $id = isset($objectProperties[$primaryKey]) === true ? $objectProperties[$primaryKey] : false;
 
         // remove primaryKey and id from final sql query
         if ($isPrimaryKeyInArray === true || $isIdInArray === true) {

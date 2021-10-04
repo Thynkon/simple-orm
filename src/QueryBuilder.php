@@ -35,6 +35,8 @@ class QueryBuilder
 
     private $update = [];
 
+    private $insert;
+
     // select,update,etc...
     private $queryCommand;
     private $queryMode;
@@ -81,6 +83,8 @@ class QueryBuilder
             case Query::DML:
                 switch ($this->queryCommand) {
                     case DML::INSERT:
+                        $string = 'INSERT INTO ' . $this->from[0] . ' ' . $this->insert
+                            . ';';
                         break;
                     case DML::UPDATE:
                         $string = 'UPDATE ' . $this->from[0] . ' ' . $this->update
@@ -170,6 +174,21 @@ class QueryBuilder
             $this->update .= "$column=:$column,";
         }
         $this->update = substr($this->update, 0, -1);
+
+        return $this;
+    }
+
+    public function insert($fields)
+    {
+        $this->queryMode = Query::DML;
+        $this->queryCommand = DML::INSERT;
+
+        $this->insert = "SET ";
+
+        foreach ($fields as $column => $value) {
+            $this->insert .= "$column=:$column,";
+        }
+        $this->insert = substr($this->insert, 0, -1);
 
         return $this;
     }

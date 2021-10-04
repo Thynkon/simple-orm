@@ -475,3 +475,6 @@ composer.lock
 
 # php storm
 .idea/*
+
+.phpunit.result.cache
+.env.php
