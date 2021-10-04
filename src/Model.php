@@ -115,12 +115,12 @@ class Model
         );
     }
 
-    public function delete(): null|bool
+    public function delete(): bool
     {
         return self::destroy($this->id);
     }
 
-    static public function destroy($id): null|bool
+    static public function destroy($id): bool
     {
         $connector = Connector::getInstance();
 
@@ -133,7 +133,7 @@ class Model
             // return false on duplicate entry
             // print exception message for debug purposes
             echo $exception->getMessage();
-            return null;
+            return false;
         }
     }
 }
