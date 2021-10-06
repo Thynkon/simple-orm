@@ -13,6 +13,7 @@ use ByJG\DbMigration\Exception\OldVersionSchemaException;
 use ByJG\DbMigration\Migration;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
+use Thynkon\SimpleOrm\Test\models\Answer;
 use Thynkon\SimpleOrm\Test\models\QuestionType;
 use Thynkon\SimpleOrm\Test\models\Quiz;
 
@@ -75,12 +76,7 @@ class QuizTest extends TestCase
 
     public function testWhere()
     {
-        $this->assertEquals(
-            1,
-            Quiz::where("id", 1)->get()->id
-        );
-
-        $this->assertInstanceOf(Quiz::class, Quiz::where("id", 1)->get());
+        $this->assertEquals(1,count(Quiz::where("title","Building form 123")));
     }
 
     /**
@@ -102,11 +98,11 @@ class QuizTest extends TestCase
     public function testSave()
     {
         $quiz = Quiz::find(2);
-        $quiz->title = "MY TITLE";
+        $quiz->title = "QuizTest";
         $quiz->save();
 
         $this->assertEquals(
-            "MY TITLE",
+            "QuizTest",
             Quiz::find(2)->title
         );
 
@@ -129,12 +125,10 @@ class QuizTest extends TestCase
     {
         $quiz = Quiz::find(1);
         $quiz->delete();
+        $this->assertNull(Quiz::find(1));
 
-        $this->expectException(\Exception::class);
-        Quiz::find(1);
-
-        $this->expectException(\Exception::class);
-        Quiz::find(5)->delete();
-
+        $quiz = Quiz::find(3);
+        $quiz->delete();
+        $this->assertNull(Quiz::find(5));
     }
 }

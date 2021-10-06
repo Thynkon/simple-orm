@@ -4,12 +4,11 @@ namespace Thynkon\SimpleOrm;
 
 use ReflectionClass;
 use ReflectionProperty;
-use Thynkon\SimpleOrm\database\Connector;
-use Thynkon\SimpleOrm\QueryBuilder;
+use Thynkon\SimpleOrm\database\DB;
 
 class Model
 {
-    protected Connector $connector;
+    protected DB $connector;
     protected string $primaryKey;
 
     public function __construct(array $args = [])
@@ -37,7 +36,10 @@ class Model
 
     public static function all()
     {
-        return (new QueryBuilder())->from(static::$table)->get(true, static::class);
+        $query = "SELECT * FROM " . static::$table . ";";
+        $database = DB::getInstance();
+
+        return $database->selectMany($query, [], static::class);
     }
 
     public function create(): bool
@@ -56,25 +58,21 @@ class Model
             unset($objectProperties[$primaryKey]);
         }
 
-        $connector = Connector::getInstance();
-
-        try {
-            $connector->execute(
-                (new QueryBuilder())
-                    ->from(static::$table)
-                    ->insert($objectProperties),
-                $objectProperties,
-            );
-
-            $this->$primaryKey = $connector->getConnection()->lastInsertId();
-
-            return true;
-        } catch (\PDOException $exception) {
-            // return false on duplicate entry
-            // print exception message for debug purposes
-            echo $exception->getMessage();
-            return false;
+        $database = DB::getInstance();
+        $query = sprintf("INSERT INTO `%s` SET ", static::$table);
+        foreach ($objectProperties as $column => $value) {
+            $query .= "$column=:$column,";
         }
+        $query = substr($query, 0, -1);
+
+        $lastInsertId = $database->insert($query, $objectProperties);
+        if ($lastInsertId === false) {
+            return false;
+        } else {
+            $this->$primaryKey = $lastInsertId;
+        }
+
+        return true;
     }
 
     /**
@@ -82,22 +80,21 @@ class Model
      */
     public static function find(int $id): null|Model
     {
-        try {
-            return (new QueryBuilder())
-                ->from(static::$table)
-                ->where("id", $id)
-                ->get(class: static::class
-                );
-        } catch (\Exception $exception) {
-            // for debug purposes
-            echo $exception->getMessage();
-            return null;
-        }
+        $database = DB::getInstance();
+        $query = "SELECT * FROM " . static::$table . " WHERE id = :id;";
+        $database = DB::getInstance();
+
+        return $database->selectOne($query, ["id" => $id], static::class);
+
     }
 
-    public static function where($column, $value): QueryBuilder
+    public static function where(string $column, mixed $value): array
     {
-        return (new QueryBuilder())->from(static::$table)->where($column, $value);
+        $database = DB::getInstance();
+        $query = "SELECT * FROM " . static::$table . " WHERE $column = :value;";
+        $database = DB::getInstance();
+
+        return $database->selectMany($query, ["value" => $value], static::class);
     }
 
     public function save(): bool
@@ -113,22 +110,21 @@ class Model
         // remove primaryKey and id from final sql query
         if ($isPrimaryKeyInArray === true || $isIdInArray === true) {
             unset($objectProperties["primaryKey"]);
-            unset($objectProperties[$primaryKey]);
         }
 
-        $connector = Connector::getInstance();
-
         try {
-            $connector->execute(
-                (new QueryBuilder())
-                    ->from(static::$table)
-                    ->update($objectProperties)
-                    ->where("id", $id),
-                $objectProperties,
-            );
+            $database = DB::getInstance();
+            $query = sprintf("UPDATE `%s` SET ", static::$table);
+            foreach ($objectProperties as $column => $value) {
+                $query .= "$column=:$column,";
+            }
+            $query = substr($query, 0, -1);
+            $query .= " WHERE id = :id;";
 
-            return true;
+            return $database->execute($query, $objectProperties);
+
         } catch (\PDOException $exception) {
+            echo $exception->getMessage();
             return false;
         }
     }
@@ -140,13 +136,11 @@ class Model
 
     static public function destroy($id): bool
     {
-        $connector = Connector::getInstance();
-
         try {
-            return $connector->execute(
-                (new QueryBuilder())->from(static::$table)->delete()->where("id", $id),
-                [],
-            );
+            $database = DB::getInstance();
+            $query = sprintf("DELETE FROM `%s` WHERE id = :id", static::$table);
+
+            return $database->execute($query, ["id" => $id]);
         } catch (\PDOException $exception) {
             // return false on duplicate entry
             // print exception message for debug purposes

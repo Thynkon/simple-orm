@@ -74,12 +74,7 @@ class AnswerTest extends TestCase
 
     public  function testWhere()
     {
-        $this->assertEquals(
-            1,
-            Answer::where("id", 1)->get()->id
-        );
-
-        $this->assertInstanceOf(Answer::class, Answer::where("id", 1)->get());
+        $this->assertEquals(1,count(Answer::where("value","Answer to question1")));
     }
 
     /**
@@ -102,11 +97,11 @@ class AnswerTest extends TestCase
     public function testSave()
     {
         $answer = Answer::find(1);
-        $answer->value = "Answer1";
+        $answer->value = "Answer toto";
         $answer->save();
 
         $this->assertEquals(
-            "Answer1",
+            "Answer toto",
             Answer::find(1)->value
         );
 
@@ -120,11 +115,10 @@ class AnswerTest extends TestCase
     {
         $answer = Answer::find(1);
         $answer->delete();
+        $this->assertNull(Answer::find(1));
 
-        $this->expectException(\Exception::class);
-        Answer::find(1);
-
-        $this->expectException(\Exception::class);
-        Answer::find(5)->delete();
+        $answer = Answer::find(4);
+        $answer->delete();
+        $this->assertNull(Answer::find(5));
     }
 }

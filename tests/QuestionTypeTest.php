@@ -86,15 +86,8 @@ class QuestionTypeTest extends TestCase
     {
         $this->assertEquals(
             1,
-            QuestionType::where("id", 1)->get()->id
+            QuestionType::where("id", 1)[0]->id
         );
-
-        $this->assertEquals(
-            "Multi-line text",
-            QuestionType::where("id", 3)->get()->label
-        );
-
-        $this->assertInstanceOf(QuestionType::class, QuestionType::where("id", 1)->get());
     }
 
     /**
@@ -104,7 +97,7 @@ class QuestionTypeTest extends TestCase
     {
         $question_type = QuestionType::find(1);
         $question_type->label = "QuestionType1";
-        $question_type->save();
+        var_dump($question_type->save());
 
         $this->assertEquals(
             "QuestionType1",
@@ -121,11 +114,8 @@ class QuestionTypeTest extends TestCase
     {
         $question_type = QuestionType::find(1);
         $question_type->delete();
+        $this->assertNull(QuestionType::find(1));
 
-        $this->expectException(\Exception::class);
-        QuestionType::find(1);
-
-        $this->expectException(\Exception::class);
-        QuestionType::find(5)->delete();
+        $this->assertNull(QuestionType::find(10));
     }
 }
