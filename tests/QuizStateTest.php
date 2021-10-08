@@ -13,6 +13,7 @@ use ByJG\DbMigration\Migration;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
 use Thynkon\SimpleOrm\Test\models\QuestionType;
+use Thynkon\SimpleOrm\Test\models\Quiz;
 use Thynkon\SimpleOrm\Test\models\QuizState;
 
 class QuizStateTest extends TestCase
@@ -74,17 +75,7 @@ class QuizStateTest extends TestCase
 
     public  function testWhere()
     {
-        $this->assertEquals(
-            1,
-            QuizState::where("id", 1)->get()->id
-        );
-
-        $this->assertEquals(
-            "Closed",
-            QuizState::where("id", 3)->get()->label
-        );
-
-        $this->assertInstanceOf(QuizState::class, QuizState::where("id", 1)->get());
+        $this->assertEquals(1,count(QuizState::where("label","Building")));
     }
 
     /**
@@ -122,12 +113,11 @@ class QuizStateTest extends TestCase
     {
         $quiz_state = QuizState::find(1);
         $quiz_state->delete();
+        $this->assertNull(QuizState::find(1));
 
-        $this->expectException(\Exception::class);
-        QuizState::find(1);
-
-        $this->expectException(\Exception::class);
-        QuizState::find(5)->delete();
+        $quiz_state = QuizState::find(2);
+        $quiz_state->delete();
+        $this->assertNull(QuizState::find(5));
     }
 
 }

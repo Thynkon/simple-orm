@@ -12,6 +12,7 @@ use ByJG\DbMigration\Exception\OldVersionSchemaException;
 use ByJG\DbMigration\Migration;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
+use Thynkon\SimpleOrm\Test\models\Answer;
 use Thynkon\SimpleOrm\Test\models\Question;
 
 class QuestionTest extends TestCase
@@ -73,12 +74,8 @@ class QuestionTest extends TestCase
 
     public  function testWhere()
     {
-        $this->assertEquals(
-            1,
-            Question::where("id", 1)->get()->id
-        );
-
-        $this->assertInstanceOf(Question::class, Question::where("id", 1)->get());
+        $this->assertEquals(1,count(Question::where("label","Question1")));
+        $this->assertInstanceOf(Question::class, Question::where("label", "Question1")[0]);
     }
 
     /**
@@ -105,12 +102,11 @@ class QuestionTest extends TestCase
     {
         $question = Question::find(1);
         $question->delete();
+        $this->assertNull(Question::find(1));
 
-        $this->expectException(\Exception::class);
-        Question::find(1);
-
-        $this->expectException(\Exception::class);
-        Question::find(5)->delete();
+        $question = Question::find(4);
+        $question->delete();
+        $this->assertNull(Question::find(10));
     }
 
 }
