@@ -38,6 +38,7 @@ class Model
     {
         $query = "SELECT * FROM " . static::$table . ";";
         $database = DB::getInstance();
+
         return $database->selectMany($query, [], static::class);
     }
 
@@ -109,7 +110,6 @@ class Model
         // remove primaryKey and id from final sql query
         if ($isPrimaryKeyInArray === true || $isIdInArray === true) {
             unset($objectProperties["primaryKey"]);
-            //unset($objectProperties[$primaryKey]);
         }
 
         try {
@@ -124,7 +124,6 @@ class Model
             return $database->execute($query, $objectProperties);
 
         } catch (\PDOException $exception) {
-            echo "CREATE====>\n";
             echo $exception->getMessage();
             return false;
         }
