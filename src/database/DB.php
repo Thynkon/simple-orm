@@ -2,36 +2,42 @@
 
 namespace Thynkon\SimpleOrm\database;
 
+use Exception;
 use PDO;
-use Thynkon\SimpleOrm\Singleton;
+use PDOException;
+use Thynkon\SimpleOrm\Model;
 
 require_once(".env.php");
 
-class DB extends Singleton
+class DB
 {
-    private string $dsn;
-    private string $username;
-    private string $password;
-    private PDO $connection;
+    private ?PDO $connection = null;
+    private static ?DB $instance = null;
 
-    public function __construct(string $dsn = DSN, string $username = USERNAME, string $password = PASSWORD)
+    private function __construct() {}
+
+    public static function getInstance()
     {
-        $this->dsn = $dsn;
-        $this->username = $username;
-        $this->password = $password;
-        $this->connection = new PDO($dsn, $username, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
+        if (self::$instance === null){
+            $className = static::class;
+            self::$instance = new $className;
+        }
+
+        return self::$instance;
     }
 
-    public function getConnection(): PDO
+    private function getConnection(): PDO
     {
+        if ($this->connection === null) {
+            $this->connection = new PDO(DSN, USERNAME, PASSWORD);
+        }
+
         return $this->connection;
     }
 
-    public function selectOne(string $query, array $args, $class = null)
+    public function selectOne(string $query, array $args, $class = null): null|Model|array
     {
-        $statement = $this->connection->prepare($query);
+        $statement = $this->getConnection()->prepare($query);
         $result = false;
 
         if ($statement->execute($args)) {
@@ -39,11 +45,11 @@ class DB extends Singleton
                 if ($class !== null) {
                     $result = $statement->fetchObject($class);
                 } else {
-                    $result = $statement->fetch(\PDO::FETCH_ASSOC);
+                    $result = $statement->fetch(PDO::FETCH_ASSOC);
                 }
 
                 return $result === false ? null : $result;
-            } catch (\PDOException $exception) {
+            } catch (PDOException $exception) {
                 return null;
             }
         }
@@ -51,29 +57,29 @@ class DB extends Singleton
         return null;
     }
 
-    public function selectMany(string $query, array $args, $class = null)
+    public function selectMany(string $query, array $args, $class = null): bool|array
     {
-        $statement = $this->connection->prepare($query);
+        $statement = $this->getConnection()->prepare($query);
 
         if ($statement->execute($args)) {
             if ($class !== null) {
-                return $statement->fetchAll(\PDO::FETCH_CLASS, $class);
+                return $statement->fetchAll(PDO::FETCH_CLASS, $class);
             } else {
-                return $statement->fetchAll(\PDO::FETCH_ASSOC);
+                return $statement->fetchAll(PDO::FETCH_ASSOC);
             }
         }
 
         return false;
     }
 
-    public function insert($query, $args)
+    public function insert($query, $args): bool
     {
-        $statement = $this->connection->prepare($query);
+        $statement = $this->getConnection()->prepare($query);
 
         try {
             $statement->execute($args);
             return $this->connection->lastInsertId();
-        } catch (\PDOException $exception) {
+        } catch (PDOException $exception) {
             echo $exception->getMessage();
             return false;
         }
@@ -81,9 +87,23 @@ class DB extends Singleton
 
     public function execute(string $query, array $args): int
     {
-        $statement = $this->connection->prepare($query);
+        $statement = $this->getConnection()->prepare($query);
 
         $statement->execute($args);
         return $statement->rowCount();
+    }
+
+    /**
+     * Singletons should not be cloneable.
+     */
+    protected function __clone() { }
+
+    /**
+     * Singletons should not be restorable from strings.
+     * @throws Exception
+     */
+    public function __wakeup()
+    {
+        throw new Exception("Cannot unserialize a singleton.");
     }
 }
