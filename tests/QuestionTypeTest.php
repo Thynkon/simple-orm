@@ -79,7 +79,9 @@ class QuestionTypeTest extends TestCase
         $question_type = new QuestionType();
         $question_type->label = "QuestionTypeLabel5";
         $this->assertTrue($question_type->create());
-        $this->assertFalse($question_type->create());
+
+        $this->expectException(\PDOException::class);
+        $question_type->create();
     }
 
     public  function testWhere()

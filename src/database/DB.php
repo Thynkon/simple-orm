@@ -41,48 +41,38 @@ class DB
         $result = false;
 
         if ($statement->execute($args)) {
-            try {
-                if ($class !== null) {
-                    $result = $statement->fetchObject($class);
-                } else {
-                    $result = $statement->fetch(PDO::FETCH_ASSOC);
-                }
-
-                return $result === false ? null : $result;
-            } catch (PDOException $exception) {
-                return null;
+            if ($class !== null) {
+                $result = $statement->fetchObject($class);
+            } else {
+                $result = $statement->fetch(PDO::FETCH_ASSOC);
             }
-        }
 
-        return null;
+            return $result === false ? null : $result;
+        }
     }
 
-    public function selectMany(string $query, array $args, $class = null): bool|array
+    public function selectMany(string $query, array $args, $class = null): null|array
     {
         $statement = $this->getConnection()->prepare($query);
+        $result = false;
 
         if ($statement->execute($args)) {
             if ($class !== null) {
-                return $statement->fetchAll(PDO::FETCH_CLASS, $class);
+                $result = $statement->fetchAll(PDO::FETCH_CLASS, $class);
             } else {
-                return $statement->fetchAll(PDO::FETCH_ASSOC);
+                $result = $statement->fetchAll(PDO::FETCH_ASSOC);
             }
-        }
 
-        return false;
+            return $result === false ? null : $result;
+        }
     }
 
     public function insert($query, $args): bool
     {
         $statement = $this->getConnection()->prepare($query);
 
-        try {
-            $statement->execute($args);
-            return $this->connection->lastInsertId();
-        } catch (PDOException $exception) {
-            echo $exception->getMessage();
-            return false;
-        }
+        $statement->execute($args);
+        return $this->connection->lastInsertId();
     }
 
     public function execute(string $query, array $args): int

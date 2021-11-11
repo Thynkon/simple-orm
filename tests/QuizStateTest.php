@@ -86,7 +86,9 @@ class QuizStateTest extends TestCase
         $quiz_state = new QuestionType();
         $quiz_state->label = "QuizState1234";
         $this->assertTrue($quiz_state->create());
-        $this->assertFalse($quiz_state->create());
+
+        $this->expectException(\PDOException::class);
+        $quiz_state->create();
     }
 
     /**

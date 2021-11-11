@@ -28,7 +28,7 @@ class Model
 
     public static function make(array $fields = null): null|Model
     {
-        // this is the only way we found to call either Quizz or Question constructor
+        // this is the only way we found to call either Quiz or Question constructor
         // from ModelOLD's static function
         $class_name = get_called_class();
         return new $class_name($fields);
@@ -136,16 +136,9 @@ class Model
 
     static public function destroy($id): bool
     {
-        try {
-            $database = DB::getInstance();
-            $query = sprintf("DELETE FROM `%s` WHERE id = :id", static::$table);
+        $database = DB::getInstance();
+        $query = sprintf("DELETE FROM `%s` WHERE id = :id", static::$table);
 
-            return $database->execute($query, ["id" => $id]);
-        } catch (\PDOException $exception) {
-            // return false on duplicate entry
-            // print exception message for debug purposes
-            echo $exception->getMessage();
-            return false;
-        }
+        return $database->execute($query, ["id" => $id]);
     }
 }
