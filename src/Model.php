@@ -42,6 +42,28 @@ class Model
         return $database->selectMany($query, [], static::class);
     }
 
+    /**
+     * @throws \ReflectionException
+     */
+    public static function find(int $id): null|Model
+    {
+        $database = DB::getInstance();
+        $query = "SELECT * FROM " . static::$table . " WHERE id = :id;";
+        $database = DB::getInstance();
+
+        return $database->selectOne($query, ["id" => $id], static::class);
+
+    }
+
+    public static function where(string $column, mixed $value): array
+    {
+        $database = DB::getInstance();
+        $query = "SELECT * FROM " . static::$table . " WHERE $column = :value;";
+        $database = DB::getInstance();
+
+        return $database->selectMany($query, ["value" => $value], static::class);
+    }
+
     public function create(): bool
     {
         $objectProperties = get_object_vars($this);
@@ -75,29 +97,7 @@ class Model
         return true;
     }
 
-    /**
-     * @throws \ReflectionException
-     */
-    public static function find(int $id): null|Model
-    {
-        $database = DB::getInstance();
-        $query = "SELECT * FROM " . static::$table . " WHERE id = :id;";
-        $database = DB::getInstance();
-
-        return $database->selectOne($query, ["id" => $id], static::class);
-
-    }
-
-    public static function where(string $column, mixed $value): array
-    {
-        $database = DB::getInstance();
-        $query = "SELECT * FROM " . static::$table . " WHERE $column = :value;";
-        $database = DB::getInstance();
-
-        return $database->selectMany($query, ["value" => $value], static::class);
-    }
-
-    public function save(): bool
+    public function save()
     {
         $objectProperties = get_object_vars($this);
 
@@ -112,21 +112,15 @@ class Model
             unset($objectProperties["primaryKey"]);
         }
 
-        try {
-            $database = DB::getInstance();
-            $query = sprintf("UPDATE `%s` SET ", static::$table);
-            foreach ($objectProperties as $column => $value) {
-                $query .= "$column=:$column,";
-            }
-            $query = substr($query, 0, -1);
-            $query .= " WHERE id = :id;";
-
-            return $database->execute($query, $objectProperties);
-
-        } catch (\PDOException $exception) {
-            echo $exception->getMessage();
-            return false;
+        $database = DB::getInstance();
+        $query = sprintf("UPDATE `%s` SET ", static::$table);
+        foreach ($objectProperties as $column => $value) {
+            $query .= "$column=:$column,";
         }
+        $query = substr($query, 0, -1);
+        $query .= " WHERE id = :id;";
+
+        return $database->execute($query, $objectProperties);
     }
 
     public function delete(): bool
