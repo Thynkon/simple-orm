@@ -11,14 +11,16 @@ require_once(".env.php");
 
 class DB
 {
-    private ?PDO $connection = null;
     private static ?DB $instance = null;
+    private ?PDO $connection = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function getInstance()
     {
-        if (self::$instance === null){
+        if (self::$instance === null) {
             $className = static::class;
             self::$instance = new $className;
         }
@@ -26,13 +28,19 @@ class DB
         return self::$instance;
     }
 
-    private function getConnection(): PDO
+    public function beginTransaction()
     {
-        if ($this->connection === null) {
-            $this->connection = new PDO(DSN, USERNAME, PASSWORD);
-        }
+        $this->connection->beginTransaction();
+    }
 
-        return $this->connection;
+    public function commit()
+    {
+        $this->connection->commit();
+    }
+
+    public function rollback()
+    {
+        $this->connection->rollback();
     }
 
     public function selectOne(string $query, array $args, $class = null): null|Model|array
@@ -49,6 +57,15 @@ class DB
 
             return $result === false ? null : $result;
         }
+    }
+
+    private function getConnection(): PDO
+    {
+        if ($this->connection === null) {
+            $this->connection = new PDO(DSN, USERNAME, PASSWORD);
+        }
+
+        return $this->connection;
     }
 
     public function selectMany(string $query, array $args, $class = null): null|array
@@ -84,16 +101,18 @@ class DB
     }
 
     /**
-     * Singletons should not be cloneable.
-     */
-    protected function __clone() { }
-
-    /**
      * Singletons should not be restorable from strings.
      * @throws Exception
      */
     public function __wakeup()
     {
         throw new Exception("Cannot unserialize a singleton.");
+    }
+
+    /**
+     * Singletons should not be cloneable.
+     */
+    protected function __clone()
+    {
     }
 }
