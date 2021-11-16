@@ -84,7 +84,7 @@ class DB
         }
     }
 
-    public function insert($query, $args): bool
+    public function insert($query, $args): int
     {
         $statement = $this->getConnection()->prepare($query);
 
