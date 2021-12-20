@@ -7,8 +7,6 @@ use PDO;
 use PDOException;
 use Thynkon\SimpleOrm\Model;
 
-require_once(".env.php");
-
 class DB
 {
     private static ?DB $instance = null;
